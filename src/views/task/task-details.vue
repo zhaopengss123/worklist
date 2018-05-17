@@ -1,4 +1,5 @@
 <template id="com-dialog" >
+
   <div class="task-detail">
     <div class="quote-title">工单详情  {{ detailData.sendee }}</div>
     <!--基本信息-->
@@ -45,7 +46,7 @@
       <el-row>
         <el-col :span="8">
           <el-form-item label="期望完成时间">
-           {{ detailData.expectTime | format}}
+           {{detailData.expectTimeStart | format}} {{detailData.expectTimeStart?'——':''}} {{ detailData.expectTime | format}}  
           </el-form-item>
         </el-col>
         <el-col :span="8">
@@ -90,87 +91,585 @@
     <el-card class="box-card box-card-bot">
       <div slot="header" class="clearfix">
         <span>操作</span>
+
       </div>
       <el-row>
         <el-col :span="24">
-          <el-form-item label="工单操作" >
+          <el-form-item label="工单操作" v-show="detailData.status == 0 && detailData.personOper == true " >
             <el-button type="success" plain size="small" icon="el-icon-success" @click="apllyAct" v-if="apllyFlag">接受</el-button>
             <el-button type="info" plain size="small" icon="el-icon-error" @click="rejectAct" v-if="rejectFlag">拒绝</el-button>
             <el-button type="warning" plain size="small" icon="el-icon-refresh"  @click="handRound" v-if="handFlag">转给同事</el-button>
             <span  v-if="apllyTxtFlag" class="successTxt">{{ operationEvent.text }}</span>
           </el-form-item>
-          <el-form-item label="工单操作" v-show=" detailData.personOper == false ">
+          <el-form-item label="工单状态" v-show=" detailData.personOper == false ">
             {{ detailData.status == 1 ? '进行中' : detailData.status == 2 ? '拒绝' : detailData.status == 3 ? '完成' : '待处理' }}
           </el-form-item>
-           <el-form-item label="工单操作" v-show="detailData.personOper == true &&  detailData.status != 0">
+           <el-form-item label="工单状态" v-show="detailData.personOper == true &&  detailData.status != 0">
               <span class="successTxt">{{  detailData.status == 1 ? '已接受' : detailData.status == 2 ? '已拒绝' : detailData.status == 3 ? '已完成': '待处理'}}</span>
            </el-form-item>
         </el-col>
-        <el-col >
-            <el-form-item label="上传平面图">
-              <div class="addimg">
+        
+        <el-col v-if="data_sb.result.typeCode&&detailData.status==3&&data_sb.result.typeCode!='EQUIPMENT_INSTALL'">
+              <el-col v-for="(item,indexmm) in data_sb.result.contentJson.tableData" :key="indexmm" >
+                                     <!-- <el-form-item v-if="item.fieldType!=4||item.fieldType!=9||item.fieldType!=10||item.fieldType!=11||item.fieldType!=12||item.fieldType!=5||item.fieldType!=13||item.fieldType!=14||item.fieldType!=15||item.fieldType!=16
+                     ||item.fieldType!=6||item.fieldType!=17||item.fieldType!=18||item.fieldType!=19||item.fieldType!=20" :label="item.chineseName" style="width:100%;"> -->
+                     <el-form-item v-if="item.fieldType==1||item.fieldType==2||item.fieldType==3||item.fieldType==7||item.fieldType==8" :label="item.chineseName" style="width:100%;">
+                        <div>
+                            {{item.value}}
+                        </div>
+                    </el-form-item> 
+              </el-col> 
+              <!-- 图片弹框 -->
+           <el-dialog
+            title=""
+            :visible.sync="imgVisible"
+            width="40%">
+            <img :src="imgshowsrc" alt="" style="width:100%; height:auto;">
+          </el-dialog>   
+     <el-col v-for="(item,indexb) in data_sb.result.contentJson.tableData" :key="indexb" >
+     
+            <!-- 上传图片1 -->
+              
+              <el-form-item :label="item.chineseName" v-if="item.fieldType==4"  style="width:100%;">
+              <div class="addimg" id="fileimg">
+                     <span style="width:100px; height:100px; float:left; margin-right:5px;  cursor: pointer" v-for="(items,indexd) in data_sb.result.contentJson.imgListarr" :key="indexd">
+                        <img @click="imgshow(items)" style="width:100px; height:100px; float:left;" :src="items">
+                    </span> 
+              </div>
+           </el-form-item>
+            <!-- 上传图片2 -->
+              <el-form-item :label="item.chineseName" v-if="item.fieldType==9"  style="width:100%;">
+                <div class="addimg" id="fileimg">
+                     <span style="width:100px; height:100px; float:left; margin-right:5px;  cursor: pointer" v-for="(items,indexd) in data_sb.result.contentJson.imgListarr2" :key="indexd">
+                        <img @click="imgshow(items)" style="width:100px; height:100px; float:left;" :src="items">
+                    </span> 
+              </div>
+           </el-form-item>
+            <!-- 上传图片3 -->
+              <el-form-item :label="item.chineseName" v-if="item.fieldType==10"  style="width:100%;">
+                <div class="addimg" id="fileimg">
+                     <span style="width:100px; height:100px; float:left; margin-right:5px;  cursor: pointer" v-for="(items,indexd) in data_sb.result.contentJson.imgListarr3" :key="indexd">
+                        <img  @click="imgshow(items)"  style="width:100px; height:100px; float:left;" :src="items">
+                    </span> 
+              </div>
+           </el-form-item>
+            <!-- 上传图片4 -->
+              <el-form-item :label="item.chineseName" v-if="item.fieldType==11"  style="width:100%;">
+              <div class="addimg" id="fileimg">
+                     <span style="width:100px; height:100px; float:left; margin-right:5px;  cursor: pointer" v-for="(items,indexd) in data_sb.result.contentJson.imgListarr4" :key="indexd">
+                        <img  @click="imgshow(items)"  style="width:100px; height:100px; float:left;" :src="items">
+                    </span> 
+              </div>
+           </el-form-item>
+            <!-- 上传图片5 -->
+              <el-form-item :label="item.chineseName" v-if="item.fieldType==12"  style="width:100%;">
+                <div class="addimg" id="fileimg">
+                     <span  @click="imgshow(items)"  style="width:100px; height:100px; float:left; margin-right:5px;  cursor: pointer" v-for="(items,indexd) in data_sb.result.contentJson.imgListarr5" :key="indexd">
+                        <img style="width:100px; height:100px; float:left;" :src="items">
+                    </span> 
+              </div>
+           </el-form-item>                                            
+            <!-- 上传视频 -->
+           <el-form-item v-if="item.fieldType==5" :label="item.chineseName" style="width:100%;" > 
+                  <span  v-for="(items,indexa) in data_sb.result.contentJson.videoListarr" :key="indexa" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+          </el-form-item>
+            <!-- 上传视频2 -->
+           <el-form-item v-if="item.fieldType==13" :label="item.chineseName" style="width:100%;" > 
+                  <span  v-for="(items,indexb) in data_sb.result.contentJson.videoListarr2" :key="indexb" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+          </el-form-item>          
+            <!-- 上传视频3 -->
+           <el-form-item v-if="item.fieldType==14" :label="item.chineseName" style="width:100%;" > 
+                  <span  v-for="(items,indexc) in data_sb.result.contentJson.videoListarr3" :key="indexc" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+          </el-form-item>
+            <!-- 上传视频4 -->
+           <el-form-item v-if="item.fieldType==15" :label="item.chineseName" style="width:100%;" > 
+                  <span  v-for="(items,indexd) in data_sb.result.contentJson.videoListarr4" :key="indexd" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+          </el-form-item>
+            <!-- 上传视频5 -->
+           <el-form-item v-if="item.fieldType==16" :label="item.chineseName" style="width:100%;" > 
+                  <span  v-for="(items,indexe) in data_sb.result.contentJson.videoListarr5" :key="indexe" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+          </el-form-item>
+            <!-- 上传视频 -->
+       
+            <!-- 上传附件 -->
+            <el-form-item v-if="item.fieldType==6" :label="item.chineseName" style="width:100%;" > 
+                   <span  v-for="(items,indexf) in data_sb.result.contentJson.fileListarr" :key="indexf" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+            </el-form-item>     
+      <!-- 上传附件 -->
+            <el-form-item v-if="item.fieldType==17" :label="item.chineseName" style="width:100%;" > 
+                   <span  v-for="(items,indexg) in data_sb.result.contentJson.fileListarr2" :key="indexg" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+            </el-form-item>                  
+      <!-- 上传附件 -->
+            <el-form-item v-if="item.fieldType==18" :label="item.chineseName" style="width:100%;" > 
+                   <span  v-for="(items,indexh) in data_sb.result.contentJson.fileListarr3" :key="indexh" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+            </el-form-item>
+      <!-- 上传附件 -->
+            <el-form-item v-if="item.fieldType==19" :label="item.chineseName" style="width:100%;" > 
+                   <span  v-for="(items,indexi) in data_sb.result.contentJson.fileListarr4" :key="indexi" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+            </el-form-item>
+      <!-- 上传附件 -->
+            <el-form-item v-if="item.fieldType==20" :label="item.chineseName" style="width:100%;" > 
+                   <span  v-for="(items,indexj) in data_sb.result.contentJson.fileListarr5" :key="indexj" style="color:blue; display:block;" >
+                      <a :href="items" target="_blank">{{items}}</a>
+                  </span>
+            </el-form-item>                        
+        </el-col> 
+
+
+               <!-- 设备详情 -->
+             
+               <el-col v-if="data_sb.result.typeCode =='DESIGN'" style="width:100%;color:#99a9bf; font-size:16px;">
+                  <span style="width:100%; text-align:center; display:block; padding:10px 0;">设备详情</span>
+              
+
+        <el-col style="width:100%; margin-bottom:22px;">
+               <el-table
+                :data="data_sb.result.contentJson.data_Detail"
+                style="width: 100%">
+                <el-table-column prop="type" label="设备名称"></el-table-column>
+                <el-table-column prop="inside_color" label="内色"></el-table-column>
+                <el-table-column prop="outside_color" label="外色"></el-table-column>
+                <el-table-column prop="model" label="设备类型"></el-table-column>
+                <el-table-column prop="moneys" label="单价"></el-table-column>
+                <el-table-column prop="numbers" label="数量"></el-table-column>
+                <el-table-column prop="price" label="总价"></el-table-column>
+                <el-table-column prop="remarks" label="备注"></el-table-column>   
+             
+    </el-table>
+        </el-col>
+ </el-col>
+
+
+
+
+
+              <!-- //examine -->
+             <el-col>
+             <el-form-item label="验收清单" class="billList" style="width:100%;" v-if="data_sb.result.typeCode == 'WATER_ELECTRICITY'"  >
+              <div class="listys" >
+                  <div class="header_list">
+                      <ul>
+                        <li>区域</li>
+                        <li>项目</li>
+                        <li>标准水路</li>
+                        <li>空气能供热</li>
+                        <li>验收结果</li>
+                      </ul>
+                  </div>
+                  <div class="left_list">
+                    <ul>
+                      <!-- <li v-for="(item,Indexs) in data_sb.result.templateMap.customTemplateArray" :key="Indexs" v-bind:style="{height:42*item.list.length+20+'px',lineHeight:42*item.list.length+20+'px'}">{{item.list[0].deviceName}}</li> -->
+                       <li v-for="(item,Indexs) in data_sb.result.contentJson.examine" :key="Indexs" v-bind:style="{height:42*item.list.length+20+'px',lineHeight:42*item.list.length+20+'px'}">{{item.deviceName}}</li> 
+                    </ul>
+                  </div>
+                  <div class="main_list">
+                   <div style="width:100%; "  v-for="(item,Indexs) in data_sb.result.contentJson.examine" :key="Indexs">
+                     <ul v-for="(items,Indexy) in data_sb.result.contentJson.examine[Indexs].list" :key="Indexy">
+                      <li>{{items.projectName}}</li>
+                      <li>{{items.waterWay||items.commonNorm}}</li>
+                      <li>{{items.airEnergy}}</li>
+                      <li>  
+              
+                      <span>{{items.model==2?'不通过':'通过'}}</span>
+                      <el-input v-if="items.text" v-model="items.text" v-show="items.model==2"  :disabled="true" placeholder="不通过原因" style="width:150px; margin-left:10px; margin-bottom:0;"></el-input>
+                      </li>
+                    </ul>
+                    </div> 
+                  </div>                  
+              </div>
+           </el-form-item>  
+          </el-col>
+
+      
+
+
+
+        </el-col>
+      <el-col v-if="data_sb.result.typeCode&&detailData.status==1&&data_sb.result.typeCode!='EQUIPMENT_INSTALL'"> 
+  
+          <el-col v-for="(item,indexmm) in data_sb.result.templateMap.commonArray" :key="indexmm" >
+           
+            <!-- 单行文本框 -->
+            <el-form-item :label="item.chineseName" v-if="item.fieldType==1" style="width:100%;">
+              <div >
+              <el-input :maxlength="item.limit?item.limit:10000" v-model="item['value']"  placeholder="请输入内容"></el-input>
+              </div>
+           </el-form-item>  
+            <!-- 多行文本框 -->
+             <el-form-item :label="item.chineseName" v-if="item.fieldType==2" style="width:100%;">
+              <div >
+              <el-input :maxlength="item.limit?item.limit:10000" v-model="item['value']" style="width:300px;" type="textarea" :rows="6" ></el-input>
+              </div>
+           </el-form-item> 
+            <!-- 下拉列表 -->
+               <el-form-item :label="item.chineseName" v-if="item.fieldType==3" style="width:100%;">
+              <div >
+                     <el-select v-model="item['value']" placeholder="请选择">
+                      <el-option
+                        v-for="(items,index_item) in item.selectContent"
+                        :key="index_item"
+                        :label="items.name"
+                        :value="items.value">
+                      </el-option>
+                    </el-select>
+              </div>
+           </el-form-item>
+            <!-- 上传图片1 -->
+              <el-form-item class="aaaaa" :label="item.chineseName" v-if="item.fieldType==4"  style="width:100%;">
+              <div class="addimg" id="fileimg">
                   <el-upload
                   action="https://jsonplaceholder.typicode.com/posts/"
                   list-type="picture-card"
                   :on-preview="handlePictureCardPreview"
-                  :on-remove="handleRemove"
+                  :on-remove="imgRemove"
                   :auto-upload='false'
-                  :limit="5">
-
+                  :on-change="upLoadProimg"
+                  :name="'filesname'"
+                  :file-list="fileListimg"
+                  :limit="Number(item.limit?item.limit:10)">
                   <i class="el-icon-plus"></i>
                 </el-upload>
                 <el-dialog :visible.sync="dialogVisible" class="imglist">
                   <img width="100%" :src="dialogImageUrl" alt="">
                 </el-dialog>
-                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 最多可上传5个文件</div>
+                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 且不超过5M ,最多可上传{{item.limit?item.limit:10}}个文件</div>
               </div>
-              
-           </el-form-item>  
-        </el-col>   
+           </el-form-item>
+            <!-- 上传图片2 -->
+              <el-form-item class="aaaaa" :label="item.chineseName" v-if="item.fieldType==9"  style="width:100%;">
+              <div class="addimg" id="fileimg">
+                  <el-upload
+                  action="https://jsonplaceholder.typicode.com/posts/"
+                  list-type="picture-card"
+                  :on-preview="handlePictureCardPreview"
+                  :on-remove="imgRemove2"
+                  :auto-upload='false'
+                  :on-change="upLoadProimg2"
+                  :name="'filesname'"
+                  :file-list="fileListimg2"
+                  :limit="Number(item.limit?item.limit:10)">
+                  <i class="el-icon-plus"></i>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible" class="imglist">
+                  <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 且不超过5M ,最多可上传{{item.limit?item.limit:10}}个文件</div>
+              </div>
+           </el-form-item>
+            <!-- 上传图片3 -->
+              <el-form-item class="aaaaa" :label="item.chineseName" v-if="item.fieldType==10"  style="width:100%;">
+              <div class="addimg" id="fileimg">
+                  <el-upload
+                  action="https://jsonplaceholder.typicode.com/posts/"
+                  list-type="picture-card"
+                  :on-preview="handlePictureCardPreview"
+                  :on-remove="imgRemove3"
+                  :auto-upload='false'
+                  :on-change="upLoadProimg3"
+                  :name="'filesname'"
+                  :file-list="fileListimg3"
+                  :limit="Number(item.limit?item.limit:10)">
+                  <i class="el-icon-plus"></i>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible" class="imglist">
+                  <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 且不超过5M ,最多可上传{{item.limit?item.limit:10}}个文件</div>
+              </div>
+           </el-form-item>
+            <!-- 上传图片4 -->
+              <el-form-item class="aaaaa" :label="item.chineseName" v-if="item.fieldType==11"  style="width:100%;">
+              <div class="addimg" id="fileimg">
+                  <el-upload
+                  action="https://jsonplaceholder.typicode.com/posts/"
+                  list-type="picture-card"
+                  :on-preview="handlePictureCardPreview"
+                  :on-remove="imgRemove4"
+                  :auto-upload='false'
+                  :on-change="upLoadProimg4"
+                  :name="'filesname'"
+                  :file-list="fileListimg4"
+                  :limit="Number(item.limit?item.limit:10)">
+                  <i class="el-icon-plus"></i>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible" class="imglist">
+                  <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 且不超过5M ,最多可上传{{item.limit?item.limit:10}}个文件</div>
+              </div>
+           </el-form-item>
+            <!-- 上传图片5 -->
+              <el-form-item class="aaaaa" :label="item.chineseName" v-if="item.fieldType==12"  style="width:100%;">
+              <div class="addimg" id="fileimg">
+                  <el-upload
+                  action="https://jsonplaceholder.typicode.com/posts/"
+                  list-type="picture-card"
+                  :on-preview="handlePictureCardPreview"
+                  :on-remove="imgRemove5"
+                  :auto-upload='false'
+                  :on-change="upLoadProimg5"
+                  :name="'filesname'"
+                  :file-list="fileListimg5"
+                  :limit="Number(item.limit?item.limit:10)">
+                  <i class="el-icon-plus"></i>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible" class="imglist">
+                  <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 且不超过5M ,最多可上传{{item.limit?item.limit:10}}个文件</div>
+              </div>
+           </el-form-item>                                            
+            <!-- 上传视频 -->
+           <el-form-item v-if="item.fieldType==5" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="videoRemove"
+              :on-change="upLoadProvideo"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListvideo"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传MP4、AVI、WMV文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>
+           <!-- 上传视频2 -->
+           <el-form-item v-if="item.fieldType==13" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="videoRemove2"
+              :on-change="upLoadProvideo2"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListvideo2"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传MP4、AVI、WMV文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>
+           <!-- 上传视频3 -->
+           <el-form-item v-if="item.fieldType==14" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="videoRemove3"
+              :on-change="upLoadProvideo3"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListvideo3"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传MP4、AVI、WMV文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>          
+           <!-- 上传视频4 -->
+           <el-form-item v-if="item.fieldType==15" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="videoRemove4"
+              :on-change="upLoadProvideo4"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListvideo4"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传MP4、AVI、WMV文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>
+           <!-- 上传视频5 -->
+           <el-form-item v-if="item.fieldType==16" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="videoRemove5"
+              :on-change="upLoadProvideo5"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListvideo5"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传MP4、AVI、WMV文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>
 
+            <!-- 上传附件 -->
+            <el-form-item v-if="item.fieldType==6" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="fileRemove"
+              :on-change="upLoadProfile"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListfile"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG、PDF、Word、Excel、PPT、RAR文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>     
+        <!-- 上传附件2 -->
+            <el-form-item v-if="item.fieldType==17" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="fileRemove2"
+              :on-change="upLoadProfile2"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListfile2"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG、PDF、Word、Excel、PPT、RAR文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>  
+        <!-- 上传附件 3-->
+            <el-form-item v-if="item.fieldType==18" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="fileRemove3"
+              :on-change="upLoadProfile3"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListfile3"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG、PDF、Word、Excel、PPT、RAR文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>            
+        <!-- 上传附件4 -->
+            <el-form-item v-if="item.fieldType==19" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="fileRemove4"
+              :on-change="upLoadProfile4"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListfile4"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG、PDF、Word、Excel、PPT、RAR文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>  
+        <!-- 上传附件 5-->
+            <el-form-item v-if="item.fieldType==20" :label="item.chineseName" style="width:100%;" > 
+            <el-upload 
+              class="upload-demo"
+              action="https://jsonplaceholder.typicode.com/posts/"
+              :on-preview="handlePreview"
+              :on-remove="fileRemove5"
+              :on-change="upLoadProfile5"
+              :multiple="false"
+              :limit="Number(item.limit?item.limit:10)"
+              :file-list="fileListfile5"
+              :auto-upload='false'
+              :on-exceed="handleExceed">
+              <el-button size="small" type="primary" >上传</el-button>
+              <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG、PDF、Word、Excel、PPT、RAR文件，且不超过20M, 最多可上传{{Number(item.limit?item.limit:10)}}个文件</div>
+            </el-upload>
+          </el-form-item>  
+            <!-- 日期控件 -->
+            <el-form-item :label="item.chineseName" v-if="item.fieldType==7" style="width:100%;">
+              <div >
+                  <el-date-picker
+                  type="date"
+                  v-model="item['value']"
+                  value-format="yyyy-MM-dd"
+                  placeholder="选择日期">
+                  </el-date-picker>
+              </div>
+           </el-form-item>
+           <!-- 上传接口 -->
+            <el-form-item :label="item.chineseName" v-if="item.fieldType==8" style="width:100%;">
+              <div >
+                  <el-input :maxlength="item.limit?item.limit:10000" v-model="item['value']"  placeholder="请输入内容"></el-input>
+              </div>
+           </el-form-item>
+        </el-col> 
+            <el-col  v-if="data_sb.result.typeCode =='DESIGN'">
                 <el-col>
-            <el-form-item label="选择设备" style="margin-bottom:0;"></el-form-item>       
+            <el-form-item label="选择设备" style="margin-bottom:0;" ></el-form-item>       
             <el-form-item style="display:block;  padding-left:30px;">
-                    <el-select v-model="Equipmenttype_value" placeholder="请选择设备类型">
+                    <el-select v-model="Equipmenttype_value" @change="selectsb" placeholder="请选择设备">
                     <el-option
-                      v-for="item in Equipmenttype"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.label">
+                      v-for="(item,index) in data_sb.result.templateMap.customTemplateArray"
+                      :key="index"
+                      :label="item.name"
+                      :value="item.value">
                     </el-option>
                   </el-select>
                   <!-- 颜色 -->
                    <el-input v-model="inside_color" placeholder="请输入内色"></el-input>
                    <el-input v-model="outside_color" placeholder="请输入外色"></el-input>
                    <!--设备型号 -->
-                    <el-select v-model="Equipmentmodel_value" placeholder="请选择设备型号">
+                   <span  v-for="(item,index) in data_sb.result.templateMap.customTemplateArray" :key='index'>
+                    <span v-if="item.value==Equipmenttype_value">
+                    <el-select v-model="Equipmentmodel_value"  placeholder="请选择设备型号"  @change="selectmodel" v-if="item.childrenList.length>0" >
                     <el-option
-                      v-for="item in Equipmentmodel"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.label">
+                      v-for="(items,index) in item.childrenList"
+                      :key="index"
+                      :label="items.name"
+                      :value="items.value">
                     </el-option>
                   </el-select>
+                  <el-input  v-model="Equipmentmodel_value" placeholder="请输入设备型号" v-if="item.childrenList.length<1"></el-input>
+                  </span>
+                  </span>
                   <!--选择数量-->
                    <span class="numbers">数量：<el-input-number :min="1" v-model="numbers"></el-input-number></span>
                    <el-input v-model="moneys" placeholder="请输入价格（单价）"></el-input>
-                  <el-input
-                    type="textarea"
-                    :rows="2"
-                    placeholder="请输入备注"
-                    v-model="remarks">
-                  </el-input> 
+                  <el-input  type="text"  placeholder="请输入备注" v-model="remarks"></el-input> 
                   <el-button type="primary" @click="addList">添加</el-button>
            </el-form-item>  
         </el-col> 
-        <el-col style="width:100%">
+        <el-col style="width:100%; margin-bottom:22px;">
                <el-table
-                :data="tableData"
+                :data="data_Detail"
                 style="width: 100%">
                 <el-table-column prop="type" label="设备名称"></el-table-column>
                 <el-table-column prop="inside_color" label="内色"></el-table-column>
                 <el-table-column prop="outside_color" label="外色"></el-table-column>
-                <el-table-column prop="model" label="设备类型"></el-table-column>
+                <el-table-column prop="model" label="设备型号"></el-table-column>
                 <el-table-column prop="moneys" label="单价"></el-table-column>
                 <el-table-column prop="numbers" label="数量"></el-table-column>
                 <el-table-column prop="price" label="总价"></el-table-column>
@@ -182,33 +681,57 @@
               </el-table-column>              
     </el-table>
         </el-col>
-                <el-col style="margin-top:20px;">
-            <el-form-item label="上传效果图" >
-              <div class="addimg">
-                  <el-upload
-                  action="https://jsonplaceholder.typicode.com/posts/"
-                  list-type="picture-card"
-                  :on-preview="handlePictureCardPreview"
-                  :on-remove="handleRemove"
-                  :auto-upload='false'
-                  :limit="5">
+      </el-col>
 
-                  <i class="el-icon-plus"></i>
-                </el-upload>
-                <el-dialog :visible.sync="dialogVisible" class="imglist">
-                  <img width="100%" :src="dialogImageUrl" alt="">
-                </el-dialog>
-                <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG, 最多可上传5个文件</div>
+          <el-col>
+             <el-form-item label="验收清单" class="billList" style="width:100%;" v-if="data_sb.result.typeCode == 'WATER_ELECTRICITY'"  >
+              <div class="listys" >
+                  <div class="header_list">
+                      <ul>
+                        <li>区域</li>
+                        <li>项目</li>
+                        <li>标准水路</li>
+                        <li>空气能供热</li>
+                        <li>验收结果</li>
+                      </ul>
+                  </div>
+                  <div class="left_list">                     
+                    <ul>
+                      <!-- <li v-for="(item,Indexs) in data_sb.result.templateMap.customTemplateArray" :key="Indexs" v-bind:style="{height:42*item.list.length+20+'px',lineHeight:42*item.list.length+20+'px'}">{{item.list[0].deviceName}}</li> -->
+                       <li v-for="(item,Indexs) in data_sb.result.templateMap.customTempleArray" :key="Indexs" v-bind:style="{height:42*item.list.length+20+'px',lineHeight:42*item.list.length+20+'px'}">{{item.deviceName}}</li> 
+                    </ul>
+                  </div>
+                  <div class="main_list">
+                   <div style="width:100%; "  v-for="(item,Indexs) in data_sb.result.templateMap.customTempleArray" :key="Indexs">
+                     <ul v-for="(items,Indexy) in data_sb.result.templateMap.customTempleArray[Indexs].list" :key="Indexy">
+                      <li>{{items.projectName}}</li>
+                      <li>{{items.waterWay||items.commonNorm}}</li>
+                      <li>{{items.airEnergy}}</li>
+                      <li>  
+                      <el-radio v-model="items.model" :label="1">通过</el-radio>
+                      <el-radio v-model="items.model" :label="2" style="margin-left:10px">不通过</el-radio>
+                      <el-input v-model="items.text" v-show="items.model==2" placeholder="不通过原因" style="width:150px; margin-left:10px; margin-bottom:0;"></el-input>
+                   
+                      </li>
+                    </ul>
+                    </div> 
+                  </div>                  
               </div>
-              
            </el-form-item>  
-        </el-col>
+          </el-col>
+             <el-dialog
+            title=""
+            :visible.sync="customLists"
+            width="40%">
+              <textarea id="textselect" onclick="this.focus();this.select()" style="width:100%; height:500px;outline: none; border:none;" v-model="selectsdList"></textarea>
+          </el-dialog>   
 
-        <el-col class="submit_list">
-            <el-button type="primary">完成工单</el-button>
-        </el-col>  
+
+            <div style="text-align: center;" ><el-button type="primary" plain @click="submitistypecode" >完成工单</el-button><el-button type="primary" v-if="data_sb.result.typeCode == 'WATER_ELECTRICITY'"  @click="copylist" >复制未通过项目</el-button></div>
+          </el-col>
       </el-row>
-      <el-row>
+                      
+      <el-row v-if="!data_sb.result.typeCode||data_sb.result.typeCode=='EQUIPMENT_INSTALL'">
         <el-col :span="24">
           <el-form-item label="拒绝理由" v-show="detailData.status == 2 " style="width:500px;min-height:130px;" >
                <el-input
@@ -219,6 +742,7 @@
                 :disabled="true">
               </el-input>
           </el-form-item>
+      
           <el-form-item label="完成描述" v-show="detailData.status != 2&&detailData.status ">
             <div v-show=" detailData.personOper == false && detailData.status != 3 && detailData.status != 2" style="width:500px;min-height:130px;">
                <el-input
@@ -229,7 +753,7 @@
                 :disabled="true">
               </el-input>
             </div>
-             
+   
             <div v-show="detailData.personOper == true && detailData.status == 1 || detailData.status == 3" style="width:500px;min-height:130px;">
                <el-input
                 type="textarea"
@@ -242,9 +766,9 @@
             </div>
           </el-form-item>
         </el-col>
-        <!-- <el-col :span="24">
-           <el-form-item label="文件记录" 
-           v-show="detailData.personOper == true && detailData.status == 1">        
+         <el-col :span="24">
+          <el-form-item label="文件记录" 
+           v-show="detailData.personOper == true && detailData.status == 1">
             <el-upload 
               class="upload-demo"
               action="https://jsonplaceholder.typicode.com/posts/"
@@ -260,8 +784,12 @@
               <div slot="tip" class="el-upload__tip">仅支持上传JPG、PNG、PDF、Word、Excel、PPT、RAR文件，且不超过20M, 最多可上传5个文件</div>
             </el-upload>
           </el-form-item>
-        </el-col> -->
+        </el-col>
 
+        <!--上传文件  -->
+        <!-- <el-col :span="24">
+           <el-form-item label="文件记录" 
+           v-show="detailData.personOper == true && detailData.status == 1">         -->
          <el-col :span="24" >
            <el-form-item label="文件记录" v-show="detailData.personOper == false && listData.length == 0 && detailData.status == 3 || detailData.personOper == true && listData.length == 0 && detailData.status == 3">
               未上传
@@ -289,8 +817,10 @@
               </p>
           </el-form-item>
         </el-col>
-        <el-col :span="24" v-show="detailData.personOper == true && detailData.status != 3 && detailData.status != 2 "> 
-          <div style="text-align: center;"><el-button type="primary" plain @click="confirmUpload">完成工单</el-button></div>
+  
+        <el-col :span="24" v-show="detailData.personOper == true && detailData.status != 3 && detailData.status != 2"> 
+          <div style="text-align: center;" v-if="!data_sb.result.typeCode||data_sb.result.typeCode=='EQUIPMENT_INSTALL'"><el-button type="primary" plain @click="confirmUpload">完成工单</el-button></div>
+
         </el-col>
       </el-row>
     </el-card>
@@ -342,6 +872,24 @@
         </li>
       </ul>
     </el-card>
+        <!--相关工单-->
+    <el-card class="box-card box-card-bot">
+      <div slot="header" class="clearfix">
+        <span>其他相关工单</span>
+      </div>
+      <ul class="gongdantype">
+        <li><span>工单类型</span><span>工单名称</span><span>状态</span></li>
+        <li v-for="(item, index) in data_sb.result.shopSheetList" :key="index">
+            <span>{{item.typeName}}</span>
+            <span @click="skips(item.id)">{{item.mName}}</span>
+            <span>{{item.missionStatus==0?'待处理':(item.missionStatus==1?'进行中':(item.missionStatus==2?'已拒绝':(item.missionStatus==3?'已完成':"")))}}</span>
+        </li>
+      </ul>
+
+
+    </el-card>
+
+
     <div class="operateBox">
        <el-button @click="returnFun">返回</el-button>
     </div>
@@ -433,9 +981,104 @@
 </template>
 <style lang="less">
 .task-detail{
+  .gongdantype li span{
+    width:200px; float:left; 
+    height:40px;
+    line-height:40px;
+    
+  }
+  .gongdantype li{
+    display:block;
+    color:#99a9bf;
+    font-size:15px;
+    width:100%;
+    height: 40px;
+    line-height: 40px;
+  }
+  .gongdantype li span:nth-child(2){
+
+    width:350px;
+    color:blue;
+    cursor:pointer;
+  }
+.gongdantype li:nth-child(1) span:nth-child(2){
+    color:#99a9bf;
+  }
+  .listys{
+    border: solid 1px #dcdfe6;
+    padding: 10px;
+    border-radius: 4px;
+    color:#909399;
+    overflow:hidden;
+  }
+   .billList .el-form-item__content{
+    width: 100%;
+  }
+  .header_list,.header_list ul{
+    width: 100%;
+    display: block;
+    overflow: hidden;
+  }
+  .header_list ul li{
+    float: left;
+    width: 15%;
+    height: 40px;
+    line-height: 40px;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+  }
+  .header_list ul li:first-child, .header_list ul li:nth-child(2){
+    width: 8%;
+  }
+  .header_list ul li:nth-child(3),.header_list ul li:nth-child(4){
+    width: 22%;
+  }
+  .header_list ul li:last-child{
+    width: 40%;
+  }
+  .left_list{
+    float: left;
+    width: 8%;
+  }
+  .main_list{
+    width: 92%;
+    float: left;
+  }
+  .main_list ul{
+    width: 100%;
+    padding-bottom: 2px;
+    display: block;
+    overflow: hidden;
+  }
+  .main_list ul li:nth-child(1){
+    width: 8.6%;
+  }
+  .main_list ul li:nth-child(2),.main_list ul li:nth-child(3){
+    width: 23.9%;
+  }  
+
+  .main_list ul li{
+    float: left;
+    width: 16.3%;
+    min-height: 40px;
+    height: 40px;
+     overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 40px;
+  }
+  .main_list ul li:last-child{
+    width:41.8%;
+  }
+.main_list>div{
+  padding-bottom: 20px;
+}
+
   .el-textarea.is-disabled .el-textarea__inner, .el-input.is-disabled .el-input__inner{
     background-color:#fff;
-    color: #5a5e66;
+    color: #5a5e66; 
   }
   .down-btn a{
     display:inline-block;
@@ -569,26 +1212,54 @@
     display: inline-block;
     margin-left: 15px;
   }
-  .el-upload,.el-upload-list__item-actions{
+/*
+.el-upload,.el-upload-list__item-actions{
     width: 100px;
     height: 100px;
     line-height: 100px;
   }
   .el-upload-list li{
-        width: 100px;
+    width: 100px;
     height: 100px;
     line-height: 100px;
   }
-  textarea,.el-textarea{
-  
-    width: auto;
-
+  */
+  .addimg .el-upload,.addimg .el-upload-list__item-actions,.addimg .el-upload-list li{
+    width: 100px;
+    height: 100px;
+    line-height: 100px;
   }
+.bztextarea{
+
+  width: 50%;
+}
   .submit_list{
     width: 100%;
     text-align: center;
     margin-top: 30px;
   }
+    .el-header, .el-footer {
+    background-color: #B3C0D1;
+    color: #333;
+    text-align: center;
+    line-height: 60px;
+  }
+  
+  .el-aside {
+    background-color: #D3DCE6;
+    color: #333;
+    text-align: center;
+
+  }
+  
+  .el-main {
+    background-color: #E9EEF3;
+    color: #333;
+    text-align: center;
+   
+  }
+  .listys{ width: 100%;}
+ 
 
 }
 </style>
@@ -600,6 +1271,21 @@ export default {
   // },
   data() {
     return {
+      data_sb:{
+        "result": {
+          "templateMap":{
+                 commonArray:[]
+          }
+         
+        }
+      },
+   
+      radio:{
+      },
+      selectsdList:'',
+      customLists:false,
+      radioInput:{},
+      input:'',       
       flagText:false,
       missionCompleteDescribe:'',
       fileUrl:'',
@@ -610,44 +1296,19 @@ export default {
       textareaRemark:'',
       dialogImageUrl: '',
       dialogVisible: false,
-      Equipmenttype:[{  //设备类型
-          value: '选项1',
-          label: '一体池系列1'
-        }, {
-          value: '选项2',
-          label: '一体池系列2'
-        }, {
-          value: '选项3',
-          label: '一体池系列3'
-        }, {
-          value: '选项4',
-          label: '龙须面'
-        }, {
-          value: '选项5',
-          label: '北京烤鸭'
-        }],
+      videolist:[],
         Equipmenttype_value:"",
-        Equipmentmodel:[  //设备型号
-         {
-          value: '选项2',
-          label: '一体池系列5'
-        }, {
-          value: '选项3',
-          label: '一体池系6'
-        }, {
-          value: '选项4',
-          label: '龙须面7'
-        }, {
-          value: '选项5',
-          label: '北京烤鸭'
-        }],
         Equipmentmodel_value:"",
         outside_color:'',
         inside_color:'',
         numbers:1,
+        value:'',
         moneys:'',
         tableData:[],
         remarks:'',
+        a:{
+          b:1
+        },
       rules: {
         textarea:[
           {required: true, message: '请输入拒绝原因', trigger: 'blur' }
@@ -705,34 +1366,124 @@ export default {
       localFileList:[],
       optionsRecipient:[],
       emailId:'',
-      uploadFileUrl:[]
+      uploadFileUrl:[],
+      data_Detail:[],
+      fileListimg:[],
+      fileListimg2:[],
+      fileListimg3:[],
+      fileListimg4:[],
+      fileListimg5:[],
+      fileListvideo:[],
+      fileListvideo2:[],
+      fileListvideo3:[],
+      fileListvideo4:[],
+      fileListvideo5:[],
+      fileListfile:[],
+      fileListfile2:[],
+      fileListfile3:[],
+      fileListfile4:[],
+      fileListfile5:[],
+      fileList:{
+        list:{
+        }
+      },
+      imgListarr:[],
+      imgListarr2:[],
+      imgListarr3:[],
+      imgListarr4:[],
+      imgListarr5:[],
+      videoListarr:[],
+      videoListarr2:[],
+      videoListarr3:[],
+      videoListarr4:[],
+      videoListarr5:[],
+      fileListarr:[],
+      fileListarr2:[],
+      fileListarr3:[],
+      fileListarr4:[],
+      fileListarr5:[],
+      content:{},
+      imgVisible:false,
+      imgshowsrc:'',
     };
   },
   methods: {
+    copylist(){
+        this.customLists = true;
+        this.selectsdList = '';
+        let data = "";
+        this.data_sb.result.templateMap.customTempleArray.map(item=>{
+          item.list.map(items=>{
+            if(items.model==2){
+              if(!items.text){
+                  items.text = "空";
+              }
+            data = data+"(区域:"+item.deviceName+',空气能供热标准:'+items.airEnergy+" ,项目名称:"+items.projectName+' ,水路标准:'+items.waterWay+' ,拒绝理由:'+items.text+')';
+            }
+          })
+        });
+        this.selectsdList = data;
+        console.log(this.selectsdList);
+        setTimeout(function(){
+          document.getElementById("textselect").focus();
+        document.getElementById("textselect").select();
+        },500)
+
+       
+    },
+    skips(id){
+        this.$router.push({ path: "/home/taskdetais/"+id});
+    },
+    // 回显预览图片
+    imgshow(src){
+      this.imgVisible = true;
+      this.imgshowsrc = src;
+    },
+    selectsb(){
+        this.Equipmentmodel_value="";
+        this.moneys = '';
+    },
+    selectmodel(){
+          this.data_sb.result.templateMap.customTemplateArray.map(item =>{
+            if(this.Equipmenttype_value == item.value){
+              item.childrenList.map(items=>{
+                  if(this.Equipmentmodel_value == items.value){
+                        this.moneys = items.price;
+                    
+                  }              
+              })
+            }
+          })
+    },
    //添加列表
    addList(){
      let that = this;
      let jsons = {};
-     jsons.type = that.Equipmenttype_value;
+    for(var i=0; i<that.data_sb.result.templateMap.customTemplateArray.length; i++){
+      if(that.Equipmenttype_value==that.data_sb.result.templateMap.customTemplateArray[i].value){
+           jsons.type = that.data_sb.result.templateMap.customTemplateArray[i].name;
+      }
+      for(var x = 0; x<that.data_sb.result.templateMap.customTemplateArray[i].childrenList.length; x++){
+        if(that.Equipmentmodel_value==that.data_sb.result.templateMap.customTemplateArray[i].childrenList[x].value)
+         jsons.model = that.data_sb.result.templateMap.customTemplateArray[i].childrenList[x].name;
+      }
+    }
      jsons.inside_color = that.inside_color;
      jsons.outside_color = that.outside_color;
-     jsons.model = that.Equipmentmodel_value;
+    
      jsons.numbers = that.numbers;
      jsons.moneys = that.moneys;
      jsons.remarks = that.remarks;
      jsons.price = that.moneys*that.numbers;
      jsons.remove = "<p>删除</p>"
-     that.tableData.push(jsons);
+     that.data_Detail.push(jsons);
+     console.log(that.data_Detail);
     },
     removeList(index){
     let that = this;
-    that.tableData.splice(index,1);
+    that.data_Detail.splice(index,1);
     },
-    //查看图片
-    imgFn(url){
-      console.log(url)
-    },
-    //删除文件列表
+        //原始删除文件列表
     handleRemove(file, fileList) {
       this.fileArrList = fileList;
       this.fileArr.map((item, index) => {
@@ -742,20 +1493,14 @@ export default {
         }
       })
     },
-    handlePreview(file) {
-    },
-    handleExceed(files, fileList) {
-      this.$message.warning(`当前限制选择 5 个文件`);
-    },
-    //上传文件
+      //原始上传文件
     upLoadPro(file,fileList){
       this.files = file.raw;
       this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
       
-      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf' || this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'RAR'){
-        this.flag = true;
+      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf' || this.fileName == 'doc'|| this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'rar'|| this.fileName == 'word'){        this.flag = true;
         this.fileArrList = fileList;
-        this.upLoadKey(file.uid, file.name);
+        this.upLoadKey1(file.uid, file.name);
       }else{
         this.flag = false;
         this.fileArrList =  fileList.slice(0, fileList.length-1);
@@ -763,7 +1508,8 @@ export default {
       }
       console.log(this.fileArrList)
     },
-    upLoadFile(fileId, fileListName){ 
+    //原始上传阿里云
+    upLoadFile1(fileId, fileListName){ 
       console.log(this.files)
        // let key = fileId + '.' + this.fileName;
        let key = this.files.name;
@@ -774,17 +1520,636 @@ export default {
         }, error => {
           this.prompt('上传文件失败','warning');
         })
+    }, 
+    //获取阿里云key
+    upLoadKey1(fileId, fileName){
+      var bucket = 'ylbb-business';
+      var region = 'oss-cn-beijing';   //申请oss服务时的区域
+      // let files, effectFiles, effectName;
+      /*获取阿里云数据*/
+      this.axios.post('http://oss.beibeiyue.com/oss/getOSSToken',  { type: 1 
+      }).then(res => { 
+        if(res.data.result == 0){
+          var creds = res.data.data; 
+            this.client = new OSS.Wrapper({
+              region: region,
+              accessKeyId: creds.accessKeyId,
+              accessKeySecret: creds.accessKeySecret,
+              stsToken: creds.securityToken,
+              bucket: bucket
+            });
+        }else{
+          $scope.$emit('prompt', {text: '获取key失败'})
+        }
+        this.upLoadFile1(fileId, fileName);
+      }).catch(error => { //捕获失败
+          this.prompt('网络连接失败,请稍后再试','warning');
+      })
+    },
+
+    //查看图片
+    imgFn(url){
+      console.log(url)
+    },
+    //删除图片列表
+    imgRemove(file,fileList){
+     this.fileListimg = fileList;
+     this.imgListarr.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.imgListarr.splice(index,1); 
+        }
+      })
+    },
+        //删除图片列表2
+    imgRemove2(file,fileList){
+     this.fileListimg2 = fileList;
+     this.imgListarr2.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.imgListarr2.splice(index,1); 
+        }
+      })
+    },
+        //删除图片列表3
+    imgRemove3(file,fileList){
+     this.fileListimg3 = fileList;
+     this.imgListarr3.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.imgListarr3.splice(index,1); 
+        }
+      })
+    },
+        //删除图片列表4
+    imgRemove4(file,fileList){
+     this.fileListimg4 = fileList;
+     this.imgListarr4.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.imgListarr4.splice(index,1); 
+        }
+      })
+    },
+        //删除图片列表5
+    imgRemove5(file,fileList){
+     this.fileListimg5 = fileList;
+     this.imgListarr5.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.imgListarr5.splice(index,1); 
+        }
+      })
+    },
+    //删除视频列表
+    videoRemove(file,fileList){
+     this.fileListvideo = fileList;
+     this.videoListarr.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.videoListarr.splice(index,1); 
+        }
+      })
+    },
+    //删除视频列表2
+    videoRemove2(file,fileList){
+     this.fileListvideo2 = fileList;
+     this.videoListarr2.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.videoListarr2.splice(index,1); 
+        }
+      })
+    },
+    //删除视频列表3
+    videoRemove3(file,fileList){
+     this.fileListvideo3 = fileList;
+     this.videoListarr3.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.videoListarr3.splice(index,1); 
+        }
+      })
+    },
+    //删除视频列表4
+    videoRemove4(file,fileList){
+     this.fileListvideo4 = fileList;
+     this.videoListarr4.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.videoListarr4.splice(index,1); 
+        }
+      })
+    },
+    //删除视频列表5
+    videoRemove5(file,fileList){
+     this.fileListvideo5 = fileList;
+     this.videoListarr5.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.videoListarr5.splice(index,1); 
+        }
+      })
+    },    
+
+        //删除文件列表
+    fileRemove(file,fileList){
+     this.fileListfile = fileList;
+     this.fileListarr.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.fileListarr.splice(index,1); 
+        }
+      })
+    },
+        //删除文件列表2
+    fileRemove2(file,fileList){
+     this.fileListfile2 = fileList;
+     this.fileListarr2.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.fileListarr2.splice(index,1); 
+        }
+      })
+    },
+        //删除文件列表3
+    fileRemove3(file,fileList){
+     this.fileListfile3 = fileList;
+     this.fileListarr3.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.fileListarr3.splice(index,1); 
+        }
+      })
+    },
+        //删除文件列表4
+    fileRemove4(file,fileList){
+     this.fileListfile4 = fileList;
+     this.fileListarr4.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.fileListarr4.splice(index,1); 
+        }
+      })
+    },            
+        //删除文件列表5
+    fileRemove5(file,fileList){
+     this.fileListfile5 = fileList;
+     this.fileListarr5.map((item, index) => {
+        let fileNAme = item.substring(item.lastIndexOf('\/')+1);
+        if(fileNAme == file.name){
+           this.fileListarr5.splice(index,1); 
+        }
+      })
+    },  
+    handlePreview(file) {
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(`文件数量超出限制`);
+    },
+    //上传图片
+    upLoadProimg(file,fileList){
+      let isLt2M = file.size / 1024 / 1024 < 5;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png'){
+        if(isLt2M){
+        this.flag = true;
+        this.fileListimg = fileList;
+        this.upLoadKey(file.uid, file.name,'img');
+        }else{
+        this.flag = false;
+        this.fileListimg =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);
+        }
+      }else{
+        this.flag = false;
+        this.fileListimg =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListimg)
+    },
+    //上传图片2
+    upLoadProimg2(file,fileList){
+      let isLt2M = file.size / 1024 / 1024 < 5;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png'){
+        if(isLt2M){
+        this.flag = true;
+        this.fileListimg2 = fileList;
+        this.upLoadKey(file.uid, file.name,'img2');
+        }else{
+        this.flag = false;
+        this.fileListimg2 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);
+        }
+      }else{
+        this.flag = false;
+        this.fileListimg2 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListimg2)
+    },
+    //上传图片3
+    upLoadProimg3(file,fileList){
+      let isLt2M = file.size / 1024 / 1024 < 5;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png'){
+        if(isLt2M){
+        this.flag = true;
+        this.fileListimg3 = fileList;
+        this.upLoadKey(file.uid, file.name,'img3');
+        }else{
+        this.flag = false;
+        this.fileListimg3 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);
+        }
+      }else{
+        this.flag = false;
+        this.fileListimg3 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListimg3)
+    }, 
+    //上传图片4
+    upLoadProimg4(file,fileList){
+      let isLt2M = file.size / 1024 / 1024 < 5;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png'){
+        if(isLt2M){
+        this.flag = true;
+        this.fileListimg4 = fileList;
+        this.upLoadKey(file.uid, file.name,'img4');
+        }else{
+        this.flag = false;
+        this.fileListimg4 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);
+        }
+      }else{
+        this.flag = false;
+        this.fileListimg4 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListimg4)
+    }, 
+    //上传图片5
+    upLoadProimg5(file,fileList){
+      let isLt2M = file.size / 1024 / 1024 < 5;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png'){
+        if(isLt2M){
+        this.flag = true;
+        this.fileListimg5 = fileList;
+        this.upLoadKey(file.uid, file.name,'img5');
+        }else{
+        this.flag = false;
+        this.fileListimg5 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);
+        }
+      }else{
+        this.flag = false;
+        this.fileListimg5 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListimg5)
+    },            
+
+    //上传视频
+    upLoadProvideo(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='mp4' || this.fileName == 'avi' || this.fileName == 'wmv' || this.fileName == 'mpeg'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListvideo = fileList;
+        this.upLoadKey(file.uid, file.name,'video');
+        }else{
+        this.flag = false;
+        this.fileListvideo =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);          
+        }
+      }else{
+        this.flag = false;
+        this.fileListvideo =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListvideo1)
+    },
+    //上传视频2
+    upLoadProvideo2(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='mp4' || this.fileName == 'avi' || this.fileName == 'wmv' || this.fileName == 'mpeg'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListvideo2 = fileList;
+        this.upLoadKey(file.uid, file.name,'video2');
+        }else{
+        this.flag = false;
+        this.fileListvideo2 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);          
+        }
+      }else{
+        this.flag = false;
+        this.fileListvideo2 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListvideo2)
+    },
+    //上传视频3
+    upLoadProvideo3(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='mp4' || this.fileName == 'avi' || this.fileName == 'wmv' || this.fileName == 'mpeg'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListvideo3 = fileList;
+        this.upLoadKey(file.uid, file.name,'video3');
+        }else{
+        this.flag = false;
+        this.fileListvideo3 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);          
+        }
+      }else{
+        this.flag = false;
+        this.fileListvideo3 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListvideo3)
+    },
+    //上传视频4
+    upLoadProvideo4(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='mp4' || this.fileName == 'avi' || this.fileName == 'wmv' || this.fileName == 'mpeg'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListvideo4 = fileList;
+        this.upLoadKey(file.uid, file.name,'video4');
+        }else{
+        this.flag = false;
+        this.fileListvideo4 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);          
+        }
+      }else{
+        this.flag = false;
+        this.fileListvideo4 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListvideo4)
+    },
+    //上传视频5
+    upLoadProvideo5(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='mp4' || this.fileName == 'avi' || this.fileName == 'wmv' || this.fileName == 'mpeg'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListvideo5 = fileList;
+        this.upLoadKey(file.uid, file.name,'video5');
+        }else{
+        this.flag = false;
+        this.fileListvideo5 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`);          
+        }
+      }else{
+        this.flag = false;
+        this.fileListvideo5 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListvideo5)
+    },            
+
+    //上传文件
+    upLoadProfile(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf'|| this.fileName == 'doc' || this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'rar'|| this.fileName == 'word'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListfile = fileList;
+        this.upLoadKey(file.uid, file.name,'file');
+        }else{
+        this.flag = false;
+        this.fileListfile =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`); 
+        }
+      }else{
+        this.flag = false;
+        this.fileListfile =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListfile);
+    }, 
+    //上传文件2
+    upLoadProfile2(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf'|| this.fileName == 'doc' || this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'rar'|| this.fileName == 'word'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListfile2 = fileList;
+        this.upLoadKey(file.uid, file.name,'file2');
+        }else{
+        this.flag = false;
+        this.fileListfile2 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`); 
+        }
+      }else{
+        this.flag = false;
+        this.fileListfile2 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListfile2);
+    },
+    //上传文件3
+    upLoadProfile3(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf'|| this.fileName == 'doc' || this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'rar'|| this.fileName == 'word'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListfile3 = fileList;
+        this.upLoadKey(file.uid, file.name,'file3');
+        }else{
+        this.flag = false;
+        this.fileListfile3 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`); 
+        }
+      }else{
+        this.flag = false;
+        this.fileListfile3 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListfile3);
+    },
+    //上传文件4
+    upLoadProfile4(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf'|| this.fileName == 'doc' || this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'rar'|| this.fileName == 'word'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListfile4 = fileList;
+        this.upLoadKey(file.uid, file.name,'file4');
+        }else{
+        this.flag = false;
+        this.fileListfile4 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`); 
+        }
+      }else{
+        this.flag = false;
+        this.fileListfile4 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListfile4);
+    },
+    //上传文件5
+    upLoadProfile5(file,fileList){
+      let isLt20M = file.size / 1024 / 1024 < 20;
+      this.files = file.raw;
+      this.fileName = file.name.substring(file.name.lastIndexOf('.')+1);
+      if(this.fileName =='jpg' || this.fileName == 'png' || this.fileName == 'pdf' || this.fileName == 'doc'|| this.fileName == 'docx' || this.fileName == 'xlsx' || this.fileName =='pptx' || this.fileName == 'rar'|| this.fileName == 'word'){
+        if(isLt20M){
+        this.flag = true;
+        this.fileListfile5 = fileList;
+        this.upLoadKey(file.uid, file.name,'file5');
+        }else{
+        this.flag = false;
+        this.fileListfile5 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`文件大小超限`); 
+        }
+      }else{
+        this.flag = false;
+        this.fileListfile5 =  fileList.slice(0, fileList.length-1);
+        this.$message.warning(`当前文件格式不正确`);	
+      }
+      console.log(this.fileListfile5);
+    },                
+   
+    upLoadFile(fileId, fileListName,type){ 
+      let that = this;
+      console.log(this.files)
+       // let key = fileId + '.' + this.fileName;
+       let key = this.files.name;
+        this.client.multipartUpload(key, this.files, {}).then(res => {
+          this.fileUrl = res.url ? res.url : 'http://'+ res.bucket + '.oss-cn-beijing.aliyuncs.com/' + res.name;
+          this.fileArr.push(this.fileUrl)
+          console.log(this.fileUrl, this.fileArr);
+         if(type=='img'){
+           this.imgListarr.push(this.fileUrl);
+         }else if(type=='video'){
+            this.videoListarr.push(this.fileUrl);
+         }else if(type=='file'){
+           this.fileListarr.push(this.fileUrl);
+         }else if(type=='img2'){
+           this.imgListarr2.push(this.fileUrl);
+         }else if(type=='img3'){
+           this.imgListarr3.push(this.fileUrl);
+         }else if(type=='img4'){
+           this.imgListarr4.push(this.fileUrl);
+         }else if(type=='img5'){
+           this.imgListarr5.push(this.fileUrl);
+         }else if(type=='video2'){
+           this.videoListarr3.push(this.fileUrl);
+         }else if(type=='video3'){
+           this.videoListarr3.push(this.fileUrl);
+         }else if(type=='video4'){
+           this.videoListarr4.push(this.fileUrl);
+         }else if(type=='video5'){
+           this.videoListarr5.push(this.fileUrl);
+         }else if(type=='file2'){
+           this.fileListarr2.push(this.fileUrl);
+         }else if(type=='file3'){
+           this.fileListarr3.push(this.fileUrl);
+         }else if(type=='file4'){
+           this.fileListarr4.push(this.fileUrl);
+         }else if(type=='file5'){
+           this.fileListarr5.push(this.fileUrl);
+         }
+        }, error => {
+          this.prompt('上传文件失败','warning');
+        })
     },
     //图片上传
-     handleRemove(file, fileList) {
-        console.log(file, fileList);
-      },
       handlePictureCardPreview(file) {
         this.dialogImageUrl = file.url;
         this.dialogVisible = true;
     
       },
+      submitistypecode(){
+        let content = {};
+        let kg = 0;
+        this.data_sb.result.templateMap.commonArray.map( item=>{
+            if(item.isNull==1&&!item.value){
+                if(item.fieldType==1||item.fieldType==2||item.fieldType==3||item.fieldType==7||item.fieldType==8){
+                    this.$message.error(item.chineseName+'不能为空');
+                    kg = 1;   
+                }
+            }  
+        });
+        if(kg==0){
+        content.examine = [];     
+        content.tableData =  this.data_sb.result.templateMap.commonArray;
+        content.imgListarr = this.imgListarr;
+        content.imgListarr2 = this.imgListarr2;
+        content.imgListarr3=this.imgListarr3;
+        content.imgListarr4=this.imgListarr4;
+        content.imgListarr5=this.imgListarr5;
+        content.videoListarr=this.videoListarr;
+        content.videoListarr2=this.videoListarr2;
+        content.videoListarr3=this.videoListarr3;
+        content.videoListarr4=this.videoListarr4;
+        content.videoListarr5=this.videoListarr5;
+        content.fileListarr=this.fileListarr;
+        content.fileListarr2=this.fileListarr2;
+        content.fileListarr3=this.fileListarr3;
+        content.fileListarr4=this.fileListarr4;
+        content.fileListarr5=this.fileListarr5;
+                                    
+        if(this.data_sb.result.typeCode=='WATER_ELECTRICITY'){
+              content.examine =this.data_sb.result.templateMap.customTempleArray;
+        }else{
+            content.examine=[];
+        }
+        if(this.data_sb.result.typeCode =='DESIGN'){
+            content.data_Detail = this.data_Detail;
+        }else{
+            content.data_Detail =[];
+        }
+        this.paramsData.missionId = parseInt(this.$route.params.id) ; //工单id
+        let paramJson = JSON.stringify({
+          status:3,
+          missionId:parseInt(this.$route.params.id),
+          contentJson:content,
+        });
 
+        this.detailData.personOper = true;
+        this.axios.post('/mission/missionOperation', {
+            paramJson:paramJson
+          }).then(res => {
+                  this.$message.success('操作成功');
+                            setTimeout(time => {
+                                this.$router.push({ path: "/home/tasklist" });
+                              }, 1000);
+      }).catch( res => {
+          this.$message.error(res.data.info);
+      })
+      }
+      },
     //确定上传
     confirmUpload(){
       this.fileString = this.fileArr.join(',');
@@ -801,6 +2166,9 @@ export default {
         this.operationEvent.text = '已接受'; 
         this.operation();             
       }
+      console.log(this.data_Detail);
+    
+
     },
     saveDetailsFn() {  //保存
     },
@@ -837,7 +2205,6 @@ export default {
     }, 
     //接收人邮箱
     emailFn(emailID, emailData){
-      console.log(111, emailData,emailID)
        this.axios.post('http://hrs.beibeiyue.com/personage/personageDetail', {id: emailID }).then(res => {
         console.log(res.data)
         emailData.receptionEmail = res.data.result.companyEmail;
@@ -879,6 +2246,7 @@ export default {
     },
     //接收人操作隐藏
     recipient(){
+      
         this.apllyFlag = false;
         this.handFlag = false;
         this.rejectFlag = false;
@@ -1012,7 +2380,7 @@ export default {
       });
     },
     //获取阿里云key
-    upLoadKey(fileId, fileName){
+    upLoadKey(fileId, fileName,type){
       var bucket = 'ylbb-business';
       var region = 'oss-cn-beijing';   //申请oss服务时的区域
       // let files, effectFiles, effectName;
@@ -1031,7 +2399,7 @@ export default {
         }else{
           $scope.$emit('prompt', {text: '获取key失败'})
         }
-        this.upLoadFile(fileId, fileName);
+        this.upLoadFile(fileId, fileName,type);
       }).catch(error => { //捕获失败
           this.prompt('网络连接失败,请稍后再试','warning');
       })
@@ -1044,11 +2412,14 @@ export default {
       if(paramsId != 0){
         //任务详情回显接口
         this.axios.post('/mission/missionDetail', {
-            id: paramsId
+            id: paramsId 
         }).then(res => {
+
           //接收人id
           //发起人id
+          
           this.detailData = res.data.result;
+          this.data_sb = res.data;
           this.form1.textarea =  res.data.result.appraiseContext;
           let sendee = this.detailData.personUpdate == true ? '发起人' : '';
           this.detailData.sendee = sendee;
@@ -1056,17 +2427,17 @@ export default {
             this.evaluateForm.radio = res.data.result.satisfaction;
             this.evaluate.radio = res.data.result.satisfaction;
           }
+        
           this.evaluate.textarea = res.data.result.appraiseContext;
           this.imgSrc = res.data.result.missionImg;
           this.evaluateForm.appraiseStatus = res.data.result.appraiseStatus;
           this.textareaRemark = res.data.result.remark;
-         
           if(res.data.result.missionImg && res.data.result.missionImg != null){
             this.listData =  res.data.result.missionImg.split(",");
           }
           if(res.data.result.uploadFileUrl && res.data.result.uploadFileUrl != null){
             this.uploadFileUrl =  res.data.result.uploadFileUrl.split(",");
-          }
+          } 
           this.missionCompleteDescribe = res.data.result.missionCompleteDescribe;
           if(this.detailData.status == 3){
             this.flagText = true;
@@ -1076,12 +2447,15 @@ export default {
           if(this.detailData.personUpdate == true && this.detailData.personOper == true && this.detailData.status == 0){
              this.rejectFlag = false
           }
-
           this.orderRecipient();
+          
+          
+          
         }).catch(error => { //捕获失败
         })
         //历史记录回显
-        this.axios.post('/mission/historyLog', {
+        //this.axios.post('/mission/historyLog', {
+          this.axios.post('/mission/historyLog', {
             correlateId: paramsId,
             pageNo: 1,
             pageSize: 50
@@ -1091,14 +2465,18 @@ export default {
             this.prompt('网络连接失败,请稍后再试','warning');
         })
       };
-    },
+    }
+
   },
-   mounted(){
-    this.getData();
+
+  mounted(){
+    this.getData(); 
+
   },
   //路由监听
   watch:{
     "$route.params.id": "getData"
   },
+
 };
 </script>

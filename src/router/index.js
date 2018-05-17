@@ -21,7 +21,7 @@ import ReceiveWorkComponent from '@views/receive/receive-list';
 import LaunchWorkComponent from '@views/launch/launch-list';
 import BuildComponent from '@views/build/build-detail';
 import BuildEditComponent from '@views/build/build-edit';
-
+import SettingsComponent from '@views/task/task-setting';
 Vue.use(Router)
 
 export default new Router({
@@ -87,6 +87,14 @@ export default new Router({
                     name: 'TaskDetais',
                     component: TaskDetaisComponent
                 },
+                
+                //设置工单配置
+                {
+                    path: 'Settings',
+                    name: 'Settings',
+                    component: SettingsComponent
+                },
+
                 //完成的工单
                 {
                     path: 'completeWork',

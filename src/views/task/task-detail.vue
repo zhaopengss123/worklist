@@ -61,7 +61,9 @@
        <el-row :span="24" >
           <el-form-item label="附件" >
               <p v-for="(list, fileIndex) in uploadFileUrl" :key="fileIndex" class="down-btn">
+                {{list}}
                 <span v-show="list.indexOf('png') >=0 || list.indexOf('jpg') >=0">
+                  
                     <a v-bind:href="list" target="_blank"><img v-bind:src="list" @click="imgFn(list)"></a><em>{{ list.substring(list.lastIndexOf('\/')+1, list.lastIndexOf('.')) }}</em><em>{{ list.substring(list.lastIndexOf('.')) }}</em><a class="downIcon" v-bind:href="list" v-bind:download="list">下载 </a>
                 </span> 
                 <span v-show="list.lastIndexOf('pptx') >=0 ">

@@ -14,7 +14,7 @@
                   :options="proOptions"
                    change-on-select
                   :show-all-levels="false"
-                  :props="{value:'pid', label:'projectName', children: 'children'}" 
+                  :props="{value:'value', label:'label', children: 'children'}" 
                   @change="proOptionFn"
                   clearable
                 ></el-cascader>
@@ -318,8 +318,31 @@ export default {
     this.getDataList();
      //工单类别
     this.axios.post('/project/parentProjectList', {}).then(res => {
-      let resultData = res.data.result;
-      this.proOptions = resultData[0].children;       
+      let projectList = res.data.result;
+                     for(let i =0; i<projectList.length; i++){
+            if(projectList[i].children.length<1){
+              delete projectList[i].children;
+            }else{
+                    for(let ii=0; ii<projectList[i].children.length; ii++){
+                        if(projectList[i].children[ii].children.length<1){
+                          delete projectList[i].children[ii].children;
+                        }else{
+                              for(let iii = 0; iii<projectList[i].children[ii].children.length; iii++){
+                                  if(projectList[i].children[ii].children[iii].children.length<1){
+                                        delete projectList[i].children[ii].children[iii].children;
+                                  }else{
+                                      for(let iiii = 0; iiii<projectList[i].children[ii].children[iii].children.length; iiii++){
+                                        if(projectList[i].children[ii].children[iii].children[iiii].children.length<1){
+                                          delete projectList[i].children[ii].children[iii].children[iiii].children;
+                                        }
+                                      }
+                                  }
+                              }
+                        }
+                    }
+            }
+           }
+      this.proOptions = projectList;       
     }).catch(error => {     })
   },
   //路由监听

@@ -10,7 +10,7 @@
                 v-model="form.projectID"
                 change-on-select
                 :options="proOptions"
-                :props="{value:'pid', label:'projectName', children: 'children'}" 
+                :props="{value:'value', label:'label', children: 'children'}" 
                 @change="proOptionFn"
               ></el-cascader>
             </div>
@@ -18,6 +18,16 @@
         <el-form-item label="工单名称" class="inputBox" prop="name">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
+        <el-form-item v-if="form.expectTimeStart" label="期望开始时间" prop="expectTime">
+             <el-date-picker
+              v-model="form.expectTimeStart"
+              type="date"
+              placeholder="选择日期"
+              :picker-options="datePick"
+              @change="getTimeData" >
+            </el-date-picker>
+        </el-form-item>
+
         <el-form-item label="期望完成时间" prop="expectTime">
              <el-date-picker
               v-model="form.expectTime"
@@ -27,6 +37,7 @@
               @change="getTimeData" >
             </el-date-picker>
         </el-form-item>
+        
         <el-form-item label="工单接收人" prop="receptionId">
             <el-select v-model="form.receptionId" placeholder="请选择" clearable @change="handleChangePro">
               <el-option
@@ -281,7 +292,18 @@ export default {
       if(this.form.expectTime == null){
         delete this.form.expectTime;
       }
-      
+      if(this.form.expectTimeStart){
+        let date = new Date(this.form.expectTimeStart);
+        let y = 1900+date.getYear();
+        let m = date.getMonth()+1;
+        let d = date.getDate();
+        m = m<10?'0'+m:m;
+        d = d<10?'0'+d:d;
+        let time = y+m+d;
+        this.form.expectTimeStart = "";
+      }
+      console.log(new Date(this.form.expectTimeStart));
+      return false;
      // 拒绝状态 编辑, 再次保存  让状态变为待处理
      if(this.form.status == 2){
        this.form.status = '0';   
@@ -298,6 +320,7 @@ export default {
           this.axios.post(url, {
              paramJson: JSON.stringify(newForm)
           }).then(res => {
+            
             this.$message.success('保存成功');
             if(res.data.info == '操作成功'){
                 setTimeout(time => {
@@ -338,28 +361,49 @@ export default {
     let paramsId = this.$route.params.id;
     //工单类别
     this.axios.post('/project/parentProjectList', {}).then(res => {
-      let resultData = res.data.result;
-      const dataFn = (arr, id) => {
-        arr.map((val, index) => {
-          if(val.children){
-            dataFn(val.children);
-          }
-          if(val.pid == 20 || val.pid == 21 || val.pid == 145){
-            val.disabled = true
-          }
-        })
-      };
-      dataFn(resultData[0].children)
-      this.proOptions = resultData[0].children; 
-
+      let projectList = res.data.result;
+        for(let i =0; i<projectList.length; i++){
+            if(projectList[i].children.length<1){
+              delete projectList[i].children;
+            }else{
+                    for(let ii=0; ii<projectList[i].children.length; ii++){
+                        if(projectList[i].children[ii].children.length<1){
+                          delete projectList[i].children[ii].children;
+                        }else{
+                              for(let iii = 0; iii<projectList[i].children[ii].children.length; iii++){
+                                  if(projectList[i].children[ii].children[iii].children.length<1){
+                                        delete projectList[i].children[ii].children[iii].children;
+                                  }else{
+                                      for(let iiii = 0; iiii<projectList[i].children[ii].children[iii].children.length; iiii++){
+                                        if(projectList[i].children[ii].children[iii].children[iiii].children.length<1){
+                                          delete projectList[i].children[ii].children[iii].children[iiii].children;
+                                        }
+                                      }
+                                  }
+                              }
+                        }
+                    }
+            }
+           }
+            this.proOptions = projectList; 
     }).catch(error => { //捕获失败
     })
   
     //编辑任务回显
     if(paramsId != 0){
-      
+ 
       //回显数据
       this.axios.post('/mission/missionDetail', {id:paramsId}).then(res => {
+       let projectidArray = res.data.result.projectidLogic.split(",");
+
+        let array = [];
+        projectidArray.map(listItem=>{
+            array.push(parseInt(listItem));
+            
+        })
+      
+        //console.log(projectidArray);
+        res.data.result.projectID = array;  
         this.form =  res.data.result;
         if(res.data.result.expectTime){
           this.form.expectTime = new Date(res.data.result.expectTime);

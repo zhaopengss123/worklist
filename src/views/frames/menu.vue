@@ -30,6 +30,7 @@
         <el-menu-item index="/home/receiveWork/1">进行中</el-menu-item>
         <el-menu-item index="/home/receiveWork/3">已完成</el-menu-item>
         <el-menu-item index="/home/taskdetais/1">编辑</el-menu-item>
+        <el-menu-item index="/home/Settings">工单设置</el-menu-item>
       </el-submenu>
     </el-menu>
   </div>
